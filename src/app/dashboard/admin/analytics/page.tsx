@@ -19,7 +19,7 @@ interface Analytics {
 export default function AnalyticsDashboard() {
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [loading, setLoading] = useState(true);
-  const [period, setPeriod] = useState('30');
+  const [period, setPeriod] = useState('180');
 
   useEffect(() => {
     fetchAnalytics();
@@ -101,6 +101,8 @@ export default function AnalyticsDashboard() {
               <option value="7">Last 7 days</option>
               <option value="30">Last 30 days</option>
               <option value="90">Last 90 days</option>
+              <option value="180">Last 6 months</option>
+              <option value="365">Last year</option>
             </select>
           </div>
 
@@ -184,9 +186,9 @@ export default function AnalyticsDashboard() {
               )}
             </Card>
 
-            {/* Top Job Categories */}
+            {/* Top Job Skills */}
             <Card>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Job Categories</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Job Skills</h3>
               {analytics?.topCategories && analytics.topCategories.length > 0 ? (
                 <div className="space-y-2">
                   {analytics.topCategories.slice(0, 5).map((category, index) => (
@@ -195,7 +197,7 @@ export default function AnalyticsDashboard() {
                         <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 text-xs font-medium flex items-center justify-center">
                           {index + 1}
                         </span>
-                        <span className="text-sm text-gray-700 truncate max-w-[150px]">{category._id || 'Uncategorized'}</span>
+                        <span className="text-sm text-gray-700 truncate max-w-[150px]">{category._id || 'Unknown'}</span>
                       </div>
                       <span className="text-sm font-semibold text-gray-900">{category.count}</span>
                     </div>
