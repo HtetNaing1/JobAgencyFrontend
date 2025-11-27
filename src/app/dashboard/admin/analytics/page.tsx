@@ -117,10 +117,14 @@ export default function AnalyticsDashboard() {
                     {analytics.jobPostings.slice(-14).map((item, index) => (
                       <div
                         key={index}
-                        className="flex-1 bg-blue-500 rounded-t transition-all hover:bg-blue-600 cursor-pointer"
+                        className="flex-1 relative group"
                         style={{ height: `${Math.max((item.count / getMaxJobCount()) * 100, 5)}%` }}
-                        title={`${item._id}: ${item.count} jobs`}
-                      />
+                      >
+                        <div className="absolute inset-0 bg-blue-500 rounded-t transition-all group-hover:bg-blue-600 cursor-pointer" />
+                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                          {item.count} jobs
+                        </div>
+                      </div>
                     ))}
                   </div>
                   <div className="flex gap-1">
@@ -147,10 +151,14 @@ export default function AnalyticsDashboard() {
                     {analytics.applications.slice(-14).map((item, index) => (
                       <div
                         key={index}
-                        className="flex-1 bg-green-500 rounded-t transition-all hover:bg-green-600 cursor-pointer"
+                        className="flex-1 relative group"
                         style={{ height: `${Math.max((item.count / getMaxAppCount()) * 100, 5)}%` }}
-                        title={`${item._id}: ${item.count} applications`}
-                      />
+                      >
+                        <div className="absolute inset-0 bg-green-500 rounded-t transition-all group-hover:bg-green-600 cursor-pointer" />
+                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                          {item.count} applications
+                        </div>
+                      </div>
                     ))}
                   </div>
                   <div className="flex gap-1">
