@@ -192,8 +192,8 @@ export default function CourseDetailPage() {
       );
     }
 
-    // Employer or Training Center - cannot enquire
-    if (user?.role === 'employer' || user?.role === 'training_center') {
+    // Employer, Training Center, or Admin - cannot enquire
+    if (user?.role === 'employer' || user?.role === 'training_center' || user?.role === 'admin') {
       return (
         <div className="text-center py-3 px-4 bg-gray-100 rounded-lg">
           <p className="text-sm text-gray-600">Only job seekers can enquire about courses</p>
