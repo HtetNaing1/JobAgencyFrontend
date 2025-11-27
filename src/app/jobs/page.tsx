@@ -347,35 +347,31 @@ export default function JobsPage() {
             ) : (
               <div className="space-y-4">
                 {jobs.map(job => (
-                  <Card key={job._id} className="p-6 hover:shadow-lg transition-shadow">
-                    <div className="flex gap-4">
-                      {/* Company Logo */}
-                      <Link
-                        href={`/companies/${job.employer}`}
-                        className="w-14 h-14 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0 overflow-hidden hover:ring-2 hover:ring-blue-300 transition-all"
-                      >
-                        {job.employerProfile?.logo ? (
-                          <img src={job.employerProfile.logo} alt="" className="w-full h-full object-cover" />
-                        ) : (
-                          <span className="text-xl font-bold text-gray-400">
-                            {job.employerProfile?.companyName?.[0] || 'C'}
-                          </span>
-                        )}
-                      </Link>
+                  <Link key={job._id} href={`/jobs/${job._id}`} className="block">
+                    <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer hover:border-blue-200">
+                      <div className="flex gap-4">
+                        {/* Company Logo */}
+                        <div className="w-14 h-14 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                          {job.employerProfile?.logo ? (
+                            <img src={job.employerProfile.logo} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-xl font-bold text-gray-400">
+                              {job.employerProfile?.companyName?.[0] || 'C'}
+                            </span>
+                          )}
+                        </div>
 
-                      {/* Job Details */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-4">
-                          <div>
-                            <Link href={`/jobs/${job._id}`}>
-                              <h3 className="text-lg font-semibold text-gray-900 hover:text-blue-600 cursor-pointer">
+                        {/* Job Details */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-4">
+                            <div>
+                              <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600">
                                 {job.title}
                               </h3>
-                            </Link>
-                            <Link href={`/companies/${job.employer}`} className="text-gray-600 hover:text-blue-600 transition-colors">
-                              {job.employerProfile?.companyName || 'Company'}
-                            </Link>
-                          </div>
+                              <p className="text-gray-600">
+                                {job.employerProfile?.companyName || 'Company'}
+                              </p>
+                            </div>
                             <span className="text-sm text-gray-500 whitespace-nowrap">
                               {formatDate(job.postedDate)}
                             </span>
@@ -415,6 +411,7 @@ export default function JobsPage() {
                         </div>
                       </div>
                     </Card>
+                  </Link>
                 ))}
               </div>
             )}
