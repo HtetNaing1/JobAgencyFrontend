@@ -391,14 +391,6 @@ export default function JobSeekerDashboard() {
                             {app.status}
                           </span>
                         </td>
-                        <td className="py-4 text-right">
-                          <Link
-                            href={`/applications/${app._id}`}
-                            className="text-blue-600 hover:text-blue-700 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            View
-                          </Link>
-                        </td>
                       </tr>
                     ))}
                   </tbody>
