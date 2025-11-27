@@ -112,17 +112,22 @@ export default function AnalyticsDashboard() {
             <Card>
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Job Postings Over Time</h3>
               {analytics?.jobPostings && analytics.jobPostings.length > 0 ? (
-                <div className="h-48">
-                  <div className="flex items-end justify-between h-full gap-1">
+                <div>
+                  <div className="flex items-end gap-1 h-40 mb-2">
                     {analytics.jobPostings.slice(-14).map((item, index) => (
-                      <div key={index} className="flex-1 flex flex-col items-center">
-                        <div
-                          className="w-full bg-blue-500 rounded-t transition-all hover:bg-blue-600"
-                          style={{ height: `${(item.count / getMaxJobCount()) * 100}%`, minHeight: item.count > 0 ? '8px' : '0' }}
-                          title={`${item._id}: ${item.count} jobs`}
-                        />
-                        <span className="text-xs text-gray-500 mt-1 transform -rotate-45 origin-top-left">
-                          {new Date(item._id).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      <div
+                        key={index}
+                        className="flex-1 bg-blue-500 rounded-t transition-all hover:bg-blue-600 cursor-pointer"
+                        style={{ height: `${Math.max((item.count / getMaxJobCount()) * 100, 5)}%` }}
+                        title={`${item._id}: ${item.count} jobs`}
+                      />
+                    ))}
+                  </div>
+                  <div className="flex gap-1">
+                    {analytics.jobPostings.slice(-14).map((item, index) => (
+                      <div key={index} className="flex-1 text-center">
+                        <span className="text-xs text-gray-500 block truncate">
+                          {new Date(item._id + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                         </span>
                       </div>
                     ))}
@@ -137,17 +142,22 @@ export default function AnalyticsDashboard() {
             <Card>
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Applications Over Time</h3>
               {analytics?.applications && analytics.applications.length > 0 ? (
-                <div className="h-48">
-                  <div className="flex items-end justify-between h-full gap-1">
+                <div>
+                  <div className="flex items-end gap-1 h-40 mb-2">
                     {analytics.applications.slice(-14).map((item, index) => (
-                      <div key={index} className="flex-1 flex flex-col items-center">
-                        <div
-                          className="w-full bg-green-500 rounded-t transition-all hover:bg-green-600"
-                          style={{ height: `${(item.count / getMaxAppCount()) * 100}%`, minHeight: item.count > 0 ? '8px' : '0' }}
-                          title={`${item._id}: ${item.count} applications`}
-                        />
-                        <span className="text-xs text-gray-500 mt-1 transform -rotate-45 origin-top-left">
-                          {new Date(item._id).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      <div
+                        key={index}
+                        className="flex-1 bg-green-500 rounded-t transition-all hover:bg-green-600 cursor-pointer"
+                        style={{ height: `${Math.max((item.count / getMaxAppCount()) * 100, 5)}%` }}
+                        title={`${item._id}: ${item.count} applications`}
+                      />
+                    ))}
+                  </div>
+                  <div className="flex gap-1">
+                    {analytics.applications.slice(-14).map((item, index) => (
+                      <div key={index} className="flex-1 text-center">
+                        <span className="text-xs text-gray-500 block truncate">
+                          {new Date(item._id + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                         </span>
                       </div>
                     ))}
