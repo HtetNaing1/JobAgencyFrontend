@@ -15,7 +15,7 @@ interface Job {
     country?: string;
     remote?: boolean;
   };
-  type: string;
+  jobType: string;
   salary?: {
     min?: number;
     max?: number;
@@ -24,6 +24,7 @@ interface Job {
   employerProfile?: {
     companyName: string;
     companyLogo?: string;
+    logo?: string;
   };
   createdAt: string;
 }
@@ -213,25 +214,23 @@ export default function JobSeekerDashboard() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Quick Actions */}
-            <Card className="lg:col-span-1">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-              <div className="space-y-3">
+            <Card className="lg:col-span-1 h-fit">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Quick Actions</h3>
+              <div className="space-y-2">
                 {[
-                  { name: 'Update Profile', desc: 'Keep your info current', href: '/profile', icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg> },
-                  { name: 'My Applications', desc: 'Track your progress', href: '/applications', icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg> },
-                  { name: 'Notifications', desc: 'Check latest updates', href: '/notifications', icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg> },
+                  { name: 'Update Profile', href: '/profile', icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg> },
+                  { name: 'My Applications', href: '/applications', icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg> },
+                  { name: 'Bookmarks', href: '/bookmarks', icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg> },
+                  { name: 'Notifications', href: '/notifications', icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg> },
                 ].map((action, index) => (
                   <Link
                     key={index}
                     href={action.href}
-                    className="flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:border-blue-200 hover:bg-blue-50/50 transition-all group"
+                    className="flex items-center gap-3 p-3 rounded-lg border border-gray-100 hover:border-blue-200 hover:bg-blue-50/50 transition-all group"
                   >
-                    <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">{action.icon}</div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 group-hover:text-blue-700 transition-colors">{action.name}</p>
-                      <p className="text-sm text-gray-500">{action.desc}</p>
-                    </div>
-                    <svg className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">{action.icon}</div>
+                    <p className="flex-1 font-medium text-gray-900 group-hover:text-blue-700 transition-colors">{action.name}</p>
+                    <svg className="w-4 h-4 text-gray-400 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </Link>
@@ -240,7 +239,7 @@ export default function JobSeekerDashboard() {
             </Card>
 
             {/* Recommended Jobs */}
-            <Card className="lg:col-span-2">
+            <Card className="lg:col-span-2 flex flex-col">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">Recommended for You</h3>
                 <Link href="/jobs" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
@@ -269,7 +268,7 @@ export default function JobSeekerDashboard() {
                   </Link>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-3 max-h-[240px] overflow-y-auto pr-2">
                   {recommendations.map((rec) => (
                     <Link
                       key={rec.job._id}
@@ -312,7 +311,7 @@ export default function JobSeekerDashboard() {
                               {formatSalary(rec.job.salary)}
                             </span>
                             <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 text-xs capitalize">
-                              {rec.job.type}
+                              {rec.job.jobType?.replace('-', ' ')}
                             </span>
                           </div>
                           {rec.matchReasons.length > 0 && (

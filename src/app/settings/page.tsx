@@ -2,13 +2,15 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { Card, Button, PasswordInput } from '@/components/ui';
 import { useAuth } from '@/contexts/AuthContext';
 import { authApi } from '@/lib/api';
 
 export default function SettingsPage() {
-  const { user } = useAuth();
+  const router = useRouter();
+  const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<'password' | 'account'>('password');
 
   // Password change state
@@ -18,6 +20,12 @@ export default function SettingsPage() {
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [passwordError, setPasswordError] = useState('');
   const [passwordSuccess, setPasswordSuccess] = useState('');
+
+  // Delete account state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
 
   const validatePassword = () => {
     if (!currentPassword) {
@@ -74,6 +82,29 @@ export default function SettingsPage() {
       admin: '/dashboard/admin',
     };
     return routes[user?.role || 'jobseeker'] || '/dashboard';
+  };
+
+  const handleDeleteAccount = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setDeleteError('');
+
+    if (!deletePassword) {
+      setDeleteError('Please enter your password to confirm');
+      return;
+    }
+
+    setDeleteLoading(true);
+
+    try {
+      await authApi.deleteAccount(deletePassword);
+      logout();
+      router.push('/');
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      setDeleteError(error.response?.data?.message || 'Failed to delete account. Please try again.');
+    } finally {
+      setDeleteLoading(false);
+    }
   };
 
   return (
@@ -229,7 +260,11 @@ export default function SettingsPage() {
                   <p className="text-sm text-red-600 mb-4">
                     Once you delete your account, there is no going back. Please be certain.
                   </p>
-                  <Button variant="outline" className="text-red-600 border-red-300 hover:bg-red-100">
+                  <Button
+                    variant="outline"
+                    className="text-red-600 border-red-300 hover:bg-red-100"
+                    onClick={() => setShowDeleteModal(true)}
+                  >
                     Delete Account
                   </Button>
                 </div>
@@ -238,6 +273,73 @@ export default function SettingsPage() {
           )}
         </div>
       </div>
+
+      {/* Delete Account Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900">Delete Account</h3>
+                <p className="text-sm text-gray-500">This action cannot be undone</p>
+              </div>
+            </div>
+
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete your account? All of your data will be permanently removed.
+              This action cannot be undone.
+            </p>
+
+            {deleteError && (
+              <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-100">
+                <p className="text-red-700 text-sm">{deleteError}</p>
+              </div>
+            )}
+
+            <form onSubmit={handleDeleteAccount}>
+              <div className="mb-6">
+                <PasswordInput
+                  label="Enter your password to confirm"
+                  name="deletePassword"
+                  placeholder="Your password"
+                  value={deletePassword}
+                  onChange={(e) => {
+                    setDeletePassword(e.target.value);
+                    setDeleteError('');
+                  }}
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    setDeletePassword('');
+                    setDeleteError('');
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  className="flex-1 bg-red-600 hover:bg-red-700"
+                  isLoading={deleteLoading}
+                >
+                  Delete Account
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </ProtectedRoute>
   );
 }

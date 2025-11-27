@@ -55,7 +55,7 @@ export default function Navbar() {
           { name: 'Dashboard', href: '/dashboard/jobseeker' },
           { name: 'My Applications', href: '/applications' },
           { name: 'My Courses', href: '/my-courses' },
-          { name: 'My Profile', href: '/profile' },
+          { name: 'Bookmarks', href: '/bookmarks' },
         ];
       case 'employer':
         return [
@@ -185,14 +185,14 @@ export default function Navbar() {
                       </Link>
                       {user?.role === 'jobseeker' && (
                         <Link
-                          href="/profile"
+                          href="/bookmarks"
                           onClick={() => setUserMenuOpen(false)}
                           className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                           </svg>
-                          My Profile
+                          Bookmarks
                         </Link>
                       )}
                       {user?.role === 'employer' && (

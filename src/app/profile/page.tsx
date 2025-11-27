@@ -78,8 +78,12 @@ export default function ProfilePage() {
       const response = await api.get(endpoint);
       setProfile(response.data.data);
       setCompletion(response.data.completion || 0);
-    } catch (error) {
-      console.error('Error fetching profile:', error);
+    } catch (error: unknown) {
+      const err = error as { response?: { status?: number } };
+      // 404 is expected for new users without a profile - don't log it
+      if (err.response?.status !== 404) {
+        console.error('Error fetching profile:', error);
+      }
     } finally {
       setLoading(false);
     }

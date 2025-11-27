@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Card, Button, Badge, Spinner, NoResultsState, SkeletonList, Select } from '@/components/ui';
 import { useAuth } from '@/contexts/AuthContext';
+import BookmarkButton from '@/components/BookmarkButton';
 import api from '@/lib/api';
 
 interface Job {
@@ -58,6 +59,7 @@ export default function JobsPage() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState<Pagination>({ total: 0, page: 1, pages: 0, limit: 10 });
+  const [bookmarkedJobIds, setBookmarkedJobIds] = useState<string[]>([]);
 
   // Filters
   const [search, setSearch] = useState('');
@@ -68,6 +70,21 @@ export default function JobsPage() {
   const [maxSalary, setMaxSalary] = useState('');
   const [sortBy, setSortBy] = useState('newest');
   const [showFilters, setShowFilters] = useState(false);
+
+  // Fetch bookmarked job IDs for job seekers
+  useEffect(() => {
+    const fetchBookmarks = async () => {
+      if (user?.role === 'jobseeker') {
+        try {
+          const response = await api.get('/bookmarks/ids?type=job');
+          setBookmarkedJobIds(response.data.data.jobs || []);
+        } catch (error) {
+          console.error('Error fetching bookmarks:', error);
+        }
+      }
+    };
+    fetchBookmarks();
+  }, [user]);
 
   const fetchJobs = useCallback(async (page = 1) => {
     setLoading(true);
@@ -372,9 +389,24 @@ export default function JobsPage() {
                                 {job.employerProfile?.companyName || 'Company'}
                               </p>
                             </div>
-                            <span className="text-sm text-gray-500 whitespace-nowrap">
-                              {formatDate(job.postedDate)}
-                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-gray-500 whitespace-nowrap">
+                                {formatDate(job.postedDate)}
+                              </span>
+                              <BookmarkButton
+                                itemId={job._id}
+                                itemType="job"
+                                isBookmarked={bookmarkedJobIds.includes(job._id)}
+                                onToggle={(isBookmarked) => {
+                                  setBookmarkedJobIds(prev =>
+                                    isBookmarked
+                                      ? [...prev, job._id]
+                                      : prev.filter(id => id !== job._id)
+                                  );
+                                }}
+                                size="sm"
+                              />
+                            </div>
                           </div>
 
                           <div className="flex flex-wrap items-center gap-3 mt-3">

@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Card, Button, Input } from '@/components/ui';
 import { useAuth } from '@/contexts/AuthContext';
+import BookmarkButton from '@/components/BookmarkButton';
 import api from '@/lib/api';
 
 interface Course {
@@ -70,6 +71,7 @@ export default function CourseDetailPage() {
   const [error, setError] = useState('');
   const [showInquiryModal, setShowInquiryModal] = useState(false);
   const [existingInquiry, setExistingInquiry] = useState<Inquiry | null>(null);
+  const [isBookmarked, setIsBookmarked] = useState(false);
   const [inquiryForm, setInquiryForm] = useState({
     name: '',
     email: '',
@@ -87,11 +89,21 @@ export default function CourseDetailPage() {
   }, [params.id]);
 
   useEffect(() => {
-    // Fetch existing inquiry only for jobseekers
+    // Fetch existing inquiry and bookmark status for jobseekers
     if (params.id && isAuthenticated && user?.role === 'jobseeker') {
       fetchExistingInquiry();
+      checkBookmarkStatus();
     }
   }, [params.id, isAuthenticated, user?.role]);
+
+  const checkBookmarkStatus = async () => {
+    try {
+      const response = await api.get(`/bookmarks/check/course/${params.id}`);
+      setIsBookmarked(response.data.isBookmarked);
+    } catch (err) {
+      console.error('Error checking bookmark status:', err);
+    }
+  };
 
   const fetchCourse = async () => {
     try {
@@ -324,8 +336,17 @@ export default function CourseDetailPage() {
             {/* Price Card */}
             <Card className="lg:w-80 flex-shrink-0">
               <div className="text-center pb-4 border-b border-gray-100">
-                <div className={`text-3xl font-bold ${course.price.isFree ? 'text-green-600' : 'text-gray-900'}`}>
-                  {formatPrice(course.price)}
+                <div className="flex items-center justify-between mb-2">
+                  <div className={`text-3xl font-bold ${course.price.isFree ? 'text-green-600' : 'text-gray-900'}`}>
+                    {formatPrice(course.price)}
+                  </div>
+                  <BookmarkButton
+                    itemId={params.id as string}
+                    itemType="course"
+                    isBookmarked={isBookmarked}
+                    onToggle={setIsBookmarked}
+                    size="md"
+                  />
                 </div>
               </div>
 

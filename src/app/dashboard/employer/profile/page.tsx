@@ -91,6 +91,7 @@ export default function EmployerProfilePage() {
   const [completion, setCompletion] = useState(0);
   const [newBenefit, setNewBenefit] = useState('');
   const [activeTab, setActiveTab] = useState('view');
+  const [dataLoaded, setDataLoaded] = useState(false);
 
   // Pending image files (for new profiles)
   const [pendingLogo, setPendingLogo] = useState<File | null>(null);
@@ -105,11 +106,25 @@ export default function EmployerProfilePage() {
   const fetchProfile = async () => {
     try {
       const response = await api.get('/employers/profile');
-      setProfile(response.data.data);
+      const apiProfile = response.data.data;
+      // Merge with default profile to ensure all nested objects exist
+      // This prevents issues with controlled inputs on mobile
+      setProfile({
+        ...defaultProfile,
+        ...apiProfile,
+        location: { ...defaultProfile.location, ...(apiProfile.location || {}) },
+        contactPerson: { ...defaultProfile.contactPerson, ...(apiProfile.contactPerson || {}) },
+        socialLinks: { ...defaultProfile.socialLinks, ...(apiProfile.socialLinks || {}) },
+        benefits: apiProfile.benefits || [],
+      });
       setCompletion(response.data.completion || 0);
+      setDataLoaded(true);
     } catch (error: unknown) {
       const err = error as { response?: { status?: number } };
-      if (err.response?.status !== 404) {
+      if (err.response?.status === 404) {
+        // New profile - data is ready with defaults
+        setDataLoaded(true);
+      } else {
         console.error('Error fetching profile:', error);
       }
     } finally {
@@ -261,20 +276,26 @@ export default function EmployerProfilePage() {
           )}
 
           {/* Tabs */}
-          <Tabs defaultValue={hasProfile ? 'view' : 'edit'} value={activeTab} onValueChange={setActiveTab}>
-            <TabList variant="default" className="mb-6">
-              <TabTrigger value="view" variant="default" disabled={!hasProfile}>
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <Tabs defaultValue={hasProfile ? 'view' : 'edit'} value={activeTab} onValueChange={(value) => {
+            setActiveTab(value);
+            // Scroll to top when switching tabs on mobile
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}>
+            <TabList variant="default" className="mb-6 overflow-x-auto">
+              <TabTrigger value="view" variant="default" disabled={!hasProfile} className="whitespace-nowrap">
+                <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                 </svg>
-                View Profile
+                <span className="hidden sm:inline">View Profile</span>
+                <span className="sm:hidden">View</span>
               </TabTrigger>
-              <TabTrigger value="edit" variant="default">
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <TabTrigger value="edit" variant="default" className="whitespace-nowrap">
+                <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
-                Edit Profile
+                <span className="hidden sm:inline">Edit Profile</span>
+                <span className="sm:hidden">Edit</span>
               </TabTrigger>
             </TabList>
 
@@ -589,7 +610,7 @@ export default function EmployerProfilePage() {
 
             {/* Edit Mode */}
             <TabContent value="edit">
-              <form onSubmit={handleSubmit}>
+              <form onSubmit={handleSubmit} key={`edit-form-${dataLoaded ? 'loaded' : 'initial'}`}>
                 {/* Images Section */}
                 <Card className="p-6 mb-6">
                   <h2 className="text-xl font-semibold text-gray-900 mb-6">Company Images</h2>

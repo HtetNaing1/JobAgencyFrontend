@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Card, Button, Input } from '@/components/ui';
+import { useAuth } from '@/contexts/AuthContext';
+import BookmarkButton from '@/components/BookmarkButton';
 import api from '@/lib/api';
 
 interface Course {
@@ -66,9 +68,11 @@ const sortOptions = [
 ];
 
 export default function TrainingMarketplace() {
+  const { user } = useAuth();
   const [courses, setCourses] = useState<Course[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [bookmarkedCourseIds, setBookmarkedCourseIds] = useState<string[]>([]);
   const [filters, setFilters] = useState({
     search: '',
     category: '',
@@ -86,6 +90,21 @@ export default function TrainingMarketplace() {
   useEffect(() => {
     fetchCategories();
   }, []);
+
+  // Fetch bookmarked course IDs for job seekers
+  useEffect(() => {
+    const fetchBookmarks = async () => {
+      if (user?.role === 'jobseeker') {
+        try {
+          const response = await api.get('/bookmarks/ids?type=course');
+          setBookmarkedCourseIds(response.data.data.courses || []);
+        } catch (error) {
+          console.error('Error fetching bookmarks:', error);
+        }
+      }
+    };
+    fetchBookmarks();
+  }, [user]);
 
   useEffect(() => {
     fetchCourses();
@@ -320,7 +339,24 @@ export default function TrainingMarketplace() {
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                   {courses.map(course => (
                     <Link key={course._id} href={`/training/${course._id}`}>
-                      <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer group">
+                      <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer group relative">
+                        {/* Bookmark Button */}
+                        <div className="absolute top-2 right-2 z-10">
+                          <BookmarkButton
+                            itemId={course._id}
+                            itemType="course"
+                            isBookmarked={bookmarkedCourseIds.includes(course._id)}
+                            onToggle={(isBookmarked) => {
+                              setBookmarkedCourseIds(prev =>
+                                isBookmarked
+                                  ? [...prev, course._id]
+                                  : prev.filter(id => id !== course._id)
+                              );
+                            }}
+                            size="sm"
+                          />
+                        </div>
+
                         {/* Thumbnail placeholder */}
                         <div className="h-40 -mx-6 -mt-6 mb-4 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-t-xl flex items-center justify-center">
                           <svg className="w-16 h-16 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
