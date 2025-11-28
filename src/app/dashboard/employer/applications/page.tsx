@@ -302,9 +302,9 @@ export default function EmployerApplicationsPage() {
 
         {/* Bulk Actions */}
         {selectedApplications.length > 0 && (
-          <div className="mb-4 p-4 bg-blue-50 rounded-lg flex items-center justify-between">
+          <div className="mb-4 p-4 bg-blue-50 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <p className="text-blue-700 font-medium">{selectedApplications.length} applications selected</p>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button
                 size="sm"
                 variant="outline"
@@ -327,7 +327,7 @@ export default function EmployerApplicationsPage() {
                 variant="outline"
                 onClick={() => setSelectedApplications([])}
               >
-                Clear Selection
+                Clear
               </Button>
             </div>
           </div>
@@ -355,121 +355,213 @@ export default function EmployerApplicationsPage() {
             />
           </Card>
         ) : (
-          <Card className="overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b">
-                  <tr>
-                    <th className="p-4 text-left">
-                      <input
-                        type="checkbox"
-                        checked={selectedApplications.length === applications.length && applications.length > 0}
-                        onChange={toggleSelectAll}
-                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                      />
-                    </th>
-                    <th className="p-4 text-left text-sm font-medium text-gray-600">Applicant</th>
-                    <th className="p-4 text-left text-sm font-medium text-gray-600">Job</th>
-                    <th className="p-4 text-left text-sm font-medium text-gray-600">Applied</th>
-                    <th className="p-4 text-left text-sm font-medium text-gray-600">Status</th>
-                    <th className="p-4 text-left text-sm font-medium text-gray-600">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {applications.map(application => (
-                    <tr key={application._id} className="hover:bg-gray-50">
-                      <td className="p-4">
+          <>
+            {/* Mobile Card View */}
+            <div className="md:hidden space-y-4">
+              {applications.map(application => (
+                <Card key={application._id} className="p-4">
+                  <div className="flex items-start gap-3 mb-3">
+                    <input
+                      type="checkbox"
+                      checked={selectedApplications.includes(application._id)}
+                      onChange={() => toggleSelect(application._id)}
+                      className="w-4 h-4 mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+                      {application.jobSeeker?.jobSeekerProfile?.photo?.url ? (
+                        <img
+                          src={application.jobSeeker.jobSeekerProfile.photo.url}
+                          alt=""
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-lg font-medium text-gray-400">
+                          {getApplicantName(application).charAt(0)}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-gray-900 truncate">{getApplicantName(application)}</p>
+                      <p className="text-sm text-gray-500 truncate">{application.jobSeeker?.email}</p>
+                    </div>
+                  </div>
+
+                  <div className="ml-7 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-gray-600 truncate flex-1">{application.job?.title}</p>
+                      <span className="text-xs text-gray-400 ml-2">{formatDate(application.appliedDate)}</span>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2">
+                      <select
+                        value={application.status}
+                        onChange={(e) => handleStatusChange(application._id, e.target.value)}
+                        className={`px-3 py-1 rounded-full text-xs font-medium border-0 cursor-pointer ${getStatusColor(application.status)}`}
+                      >
+                        {statusOptions.map(opt => (
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-3 pt-2 border-t">
+                      <button
+                        onClick={() => setSelectedApplication(application)}
+                        className="text-blue-600 hover:underline text-sm"
+                      >
+                        View
+                      </button>
+                      {application.resumeUrl && (
+                        <a
+                          href={application.resumeUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline text-sm"
+                        >
+                          Resume
+                        </a>
+                      )}
+                      <button
+                        onClick={() => {
+                          setSelectedApplication(application);
+                          setShowInterviewModal(true);
+                        }}
+                        className="text-purple-600 hover:underline text-sm"
+                      >
+                        Interview
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedApplication(application);
+                          setShowFeedbackModal(true);
+                        }}
+                        className="text-gray-600 hover:underline text-sm"
+                      >
+                        Feedback
+                      </button>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+
+            {/* Desktop Table View */}
+            <Card className="overflow-hidden hidden md:block">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 border-b">
+                    <tr>
+                      <th className="p-4 text-left">
                         <input
                           type="checkbox"
-                          checked={selectedApplications.includes(application._id)}
-                          onChange={() => toggleSelect(application._id)}
+                          checked={selectedApplications.length === applications.length && applications.length > 0}
+                          onChange={toggleSelectAll}
                           className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                         />
-                      </td>
-                      <td className="p-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
-                            {application.jobSeeker?.jobSeekerProfile?.photo?.url ? (
-                              <img
-                                src={application.jobSeeker.jobSeekerProfile.photo.url}
-                                alt=""
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <span className="text-sm font-medium text-gray-400">
-                                {getApplicantName(application).charAt(0)}
-                              </span>
-                            )}
+                      </th>
+                      <th className="p-4 text-left text-sm font-medium text-gray-600">Applicant</th>
+                      <th className="p-4 text-left text-sm font-medium text-gray-600">Job</th>
+                      <th className="p-4 text-left text-sm font-medium text-gray-600">Applied</th>
+                      <th className="p-4 text-left text-sm font-medium text-gray-600">Status</th>
+                      <th className="p-4 text-left text-sm font-medium text-gray-600">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {applications.map(application => (
+                      <tr key={application._id} className="hover:bg-gray-50">
+                        <td className="p-4">
+                          <input
+                            type="checkbox"
+                            checked={selectedApplications.includes(application._id)}
+                            onChange={() => toggleSelect(application._id)}
+                            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          />
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
+                              {application.jobSeeker?.jobSeekerProfile?.photo?.url ? (
+                                <img
+                                  src={application.jobSeeker.jobSeekerProfile.photo.url}
+                                  alt=""
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <span className="text-sm font-medium text-gray-400">
+                                  {getApplicantName(application).charAt(0)}
+                                </span>
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-900">{getApplicantName(application)}</p>
+                              <p className="text-sm text-gray-500">{application.jobSeeker?.email}</p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-medium text-gray-900">{getApplicantName(application)}</p>
-                            <p className="text-sm text-gray-500">{application.jobSeeker?.email}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <p className="text-gray-900">{application.job?.title}</p>
-                      </td>
-                      <td className="p-4">
-                        <p className="text-gray-600">{formatDate(application.appliedDate)}</p>
-                      </td>
-                      <td className="p-4">
-                        <select
-                          value={application.status}
-                          onChange={(e) => handleStatusChange(application._id, e.target.value)}
-                          className={`px-3 py-1 rounded-full text-sm font-medium border-0 cursor-pointer ${getStatusColor(application.status)}`}
-                        >
-                          {statusOptions.map(opt => (
-                            <option key={opt.value} value={opt.value}>{opt.label}</option>
-                          ))}
-                        </select>
-                      </td>
-                      <td className="p-4">
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => {
-                              setSelectedApplication(application);
-                            }}
-                            className="text-blue-600 hover:underline text-sm"
+                        </td>
+                        <td className="p-4">
+                          <p className="text-gray-900">{application.job?.title}</p>
+                        </td>
+                        <td className="p-4">
+                          <p className="text-gray-600">{formatDate(application.appliedDate)}</p>
+                        </td>
+                        <td className="p-4">
+                          <select
+                            value={application.status}
+                            onChange={(e) => handleStatusChange(application._id, e.target.value)}
+                            className={`px-3 py-1 rounded-full text-sm font-medium border-0 cursor-pointer ${getStatusColor(application.status)}`}
                           >
-                            View
-                          </button>
-                          {application.resumeUrl && (
-                            <a
-                              href={application.resumeUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
+                            {statusOptions.map(opt => (
+                              <option key={opt.value} value={opt.value}>{opt.label}</option>
+                            ))}
+                          </select>
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => {
+                                setSelectedApplication(application);
+                              }}
                               className="text-blue-600 hover:underline text-sm"
                             >
-                              Resume
-                            </a>
-                          )}
-                          <button
-                            onClick={() => {
-                              setSelectedApplication(application);
-                              setShowInterviewModal(true);
-                            }}
-                            className="text-purple-600 hover:underline text-sm"
-                          >
-                            Interview
-                          </button>
-                          <button
-                            onClick={() => {
-                              setSelectedApplication(application);
-                              setShowFeedbackModal(true);
-                            }}
-                            className="text-gray-600 hover:underline text-sm"
-                          >
-                            Feedback
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Card>
+                              View
+                            </button>
+                            {application.resumeUrl && (
+                              <a
+                                href={application.resumeUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline text-sm"
+                              >
+                                Resume
+                              </a>
+                            )}
+                            <button
+                              onClick={() => {
+                                setSelectedApplication(application);
+                                setShowInterviewModal(true);
+                              }}
+                              className="text-purple-600 hover:underline text-sm"
+                            >
+                              Interview
+                            </button>
+                            <button
+                              onClick={() => {
+                                setSelectedApplication(application);
+                                setShowFeedbackModal(true);
+                              }}
+                              className="text-gray-600 hover:underline text-sm"
+                            >
+                              Feedback
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          </>
         )}
       </div>
 

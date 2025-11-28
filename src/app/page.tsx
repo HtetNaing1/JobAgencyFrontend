@@ -134,10 +134,10 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">Training Centers</h3>
               <p className="text-gray-600 leading-relaxed">
-                Offer courses, connect with employers, and help professionals develop new skills.
+                Offer courses and help professionals develop new skills.
               </p>
               <ul className="mt-4 space-y-2">
-                {['Course marketplace', 'Employer connections', 'Skills development'].map((item, i) => (
+                {['Course marketplace', 'Track Enrollments', 'Skills development'].map((item, i) => (
                   <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
                     <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -175,7 +175,7 @@ export default function Home() {
                   {item.step}
                 </div>
                 {index < 3 && (
-                  <div className="hidden md:block absolute top-8 left-[60%] w-[80%] h-0.5 bg-gradient-to-r from-blue-200 to-indigo-200" />
+                  <div className="hidden md:block absolute top-8 left-[65%] w-[80%] h-0.5 bg-gradient-to-r from-blue-200 to-indigo-200" />
                 )}
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">{item.title}</h3>
                 <p className="text-gray-600 text-sm">{item.desc}</p>
@@ -202,7 +202,7 @@ export default function Home() {
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/register">
-              <Button variant="secondary" size="lg" className="bg-white text-blue-600 hover:bg-gray-100">
+              <Button size="lg" className="bg-white text-blue-600 hover:!bg-gray-100 shadow-lg">
                 Create Free Account
               </Button>
             </Link>
@@ -216,51 +216,10 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-gray-400 py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <span className="text-lg font-bold text-white">JobAgency</span>
-              </div>
-              <p className="text-sm">
-                Connecting talent with opportunity since 2025.
-              </p>
-            </div>
-            <div>
-              <h4 className="text-white font-semibold mb-4">For Job Seekers</h4>
-              <ul className="space-y-2 text-sm">
-                <li><Link href="/jobs" className="hover:text-white transition-colors">Browse Jobs</Link></li>
-                <li><Link href="/training" className="hover:text-white transition-colors">Training Courses</Link></li>
-                <li><Link href="/resources" className="hover:text-white transition-colors">Career Resources</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-white font-semibold mb-4">For Employers</h4>
-              <ul className="space-y-2 text-sm">
-                <li><Link href="/post-job" className="hover:text-white transition-colors">Post a Job</Link></li>
-                <li><Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link></li>
-                <li><Link href="/solutions" className="hover:text-white transition-colors">Solutions</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-white font-semibold mb-4">Company</h4>
-              <ul className="space-y-2 text-sm">
-                <li><Link href="/about" className="hover:text-white transition-colors">About Us</Link></li>
-                <li><Link href="/contact" className="hover:text-white transition-colors">Contact</Link></li>
-                <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
-              </ul>
-            </div>
-          </div>
+      <footer className="bg-gray-900 text-gray-400 pb-8">
           <div className="border-t border-gray-800 pt-8 text-center text-sm">
             <p>© 2025 JobAgency. All rights reserved.</p>
           </div>
-        </div>
       </footer>
     </div>
   );

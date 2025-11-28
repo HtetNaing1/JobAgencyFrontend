@@ -224,7 +224,7 @@ export default function EmployerDashboard() {
                   </p>
                 </div>
               </div>
-              <Link href="/profile">
+              <Link href="/dashboard/employer/profile">
                 <Button className="bg-white text-orange-600 hover:bg-orange-50">
                   {profile ? 'Complete Profile' : 'Set Up Profile'}
                 </Button>
@@ -313,10 +313,9 @@ export default function EmployerDashboard() {
               {[
                 {
                   name: 'Post New Job',
-                  desc: isProfileComplete ? 'Create a new job listing' : 'Complete profile first',
-                  href: isProfileComplete ? '/jobs/post' : '/profile',
+                  desc: 'Create a new job listing',
+                  href: isProfileComplete ? '/jobs/post' : '/dashboard/employer/profile',
                   icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" /></svg>,
-                  disabled: !isProfileComplete
                 },
                 {
                   name: 'View Applications',
@@ -327,7 +326,7 @@ export default function EmployerDashboard() {
                 {
                   name: 'Company Profile',
                   desc: isProfileComplete ? 'Update your company info' : 'Set up your profile',
-                  href: '/profile',
+                  href: '/dashboard/employer/profile',
                   icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>,
                   highlight: !isProfileComplete
                 },
@@ -383,7 +382,7 @@ export default function EmployerDashboard() {
                   {isProfileComplete ? 'Post a job to start receiving applications' : 'Complete your profile first'}
                 </p>
                 <Link
-                  href={isProfileComplete ? '/jobs/post' : '/profile'}
+                  href={isProfileComplete ? '/jobs/post' : '/dashboard/employer/profile'}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition-colors"
                 >
                   {isProfileComplete ? 'Post a Job' : 'Complete Profile'}
@@ -455,7 +454,7 @@ export default function EmployerDashboard() {
                 {isProfileComplete ? 'Create your first job posting to start hiring' : 'Complete your company profile first'}
               </p>
               <Link
-                href={isProfileComplete ? '/jobs/post' : '/profile'}
+                href={isProfileComplete ? '/jobs/post' : '/dashboard/employer/profile'}
                 className="inline-flex items-center gap-2 text-emerald-600 font-medium hover:text-emerald-700"
               >
                 {isProfileComplete ? 'Post a Job' : 'Complete Profile'}

@@ -317,22 +317,21 @@ export default function EmployerProfilePage() {
                     </div>
                   </div>
 
-                  {/* Cover & Header Card */}
-                  <Card className="overflow-hidden">
-                    {/* Cover Image */}
-                    <div className="h-48 bg-gradient-to-r from-blue-600 to-indigo-600 relative">
-                      {profile.coverImage && (
-                        <img
-                          src={profile.coverImage}
-                          alt="Cover"
-                          className="w-full h-full object-cover"
-                        />
-                      )}
-                      <div className="absolute inset-0 bg-black/10"></div>
-                    </div>
+                  {/* Cover Image */}
+                  <div className="relative h-48 md:h-56 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl overflow-hidden">
+                    {profile.coverImage && (
+                      <img
+                        src={profile.coverImage}
+                        alt="Cover"
+                        className="w-full h-full object-cover"
+                      />
+                    )}
+                    <div className="absolute inset-0 bg-black/10"></div>
+                  </div>
 
-                    {/* Profile Header */}
-                    <div className="p-6 -mt-16 relative">
+                  {/* Profile Header Card */}
+                  <div className="-mt-16 relative z-10">
+                    <Card className="p-6">
                       <div className="flex flex-col md:flex-row md:items-end gap-4">
                         {/* Logo */}
                         <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl bg-white border-4 border-white shadow-lg flex items-center justify-center overflow-hidden flex-shrink-0">
@@ -421,8 +420,8 @@ export default function EmployerProfilePage() {
                           </div>
                         </div>
                       )}
-                    </div>
-                  </Card>
+                    </Card>
+                  </div>
 
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Main Content */}

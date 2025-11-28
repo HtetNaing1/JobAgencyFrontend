@@ -214,7 +214,7 @@ export default function PostJobPage() {
                 <Button variant="outline" onClick={() => router.back()}>
                   Go Back
                 </Button>
-                <Link href="/profile">
+                <Link href="/dashboard/employer/profile">
                   <Button>Complete Profile</Button>
                 </Link>
               </div>
