@@ -337,8 +337,6 @@ export default function EmployerDashboard() {
                   className={`flex items-center gap-4 p-4 rounded-xl border transition-all group ${
                     action.highlight
                       ? 'border-amber-200 bg-amber-50 hover:border-amber-300 hover:bg-amber-100'
-                      : action.disabled
-                      ? 'border-gray-100 bg-gray-50 opacity-60 cursor-not-allowed'
                       : 'border-gray-100 hover:border-emerald-200 hover:bg-emerald-50/50'
                   }`}
                 >
