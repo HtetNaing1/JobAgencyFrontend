@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button, Input, PasswordInput, Alert, Spinner } from '@/components/ui';
+import api from '@/lib/api';
 
 function LoginContent() {
   const { login, isAuthenticated } = useAuth();
@@ -17,10 +18,16 @@ function LoginContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [needsVerification, setNeedsVerification] = useState(false);
+  const [unverifiedEmail, setUnverifiedEmail] = useState('');
+  const [resendLoading, setResendLoading] = useState(false);
 
   useEffect(() => {
     if (searchParams.get('registered') === 'true') {
-      setSuccessMessage('Account created successfully! Please sign in.');
+      setSuccessMessage('Account created successfully! Please check your email to verify your account.');
+    }
+    if (searchParams.get('verified') === 'true') {
+      setSuccessMessage('Email verified successfully! You can now sign in.');
     }
   }, [searchParams]);
 
@@ -46,14 +53,37 @@ function LoginContent() {
 
     setIsLoading(true);
     setApiError('');
+    setNeedsVerification(false);
 
     try {
       await login(formData.email, formData.password);
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { message?: string } } };
-      setApiError(err.response?.data?.message || 'Invalid credentials. Please try again.');
+      const err = error as { response?: { data?: { message?: string; needsVerification?: boolean; email?: string } } };
+      if (err.response?.data?.needsVerification) {
+        setNeedsVerification(true);
+        setUnverifiedEmail(err.response.data.email || formData.email);
+        setApiError('');
+      } else {
+        setApiError(err.response?.data?.message || 'Invalid credentials. Please try again.');
+      }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    if (!unverifiedEmail) return;
+
+    setResendLoading(true);
+    try {
+      await api.post('/auth/resend-verification', { email: unverifiedEmail });
+      setSuccessMessage('Verification email sent! Please check your inbox.');
+      setNeedsVerification(false);
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      setApiError(err.response?.data?.message || 'Failed to send verification email');
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -110,6 +140,30 @@ function LoginContent() {
             <Alert variant="error" className="mb-6">
               {apiError}
             </Alert>
+          )}
+
+          {needsVerification && (
+            <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="flex items-start gap-3">
+                <svg className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div className="flex-1">
+                  <h3 className="text-sm font-medium text-yellow-800">Email verification required</h3>
+                  <p className="mt-1 text-sm text-yellow-700">
+                    Please verify your email address before logging in. Check your inbox for the verification link.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleResendVerification}
+                    disabled={resendLoading}
+                    className="mt-3 text-sm font-medium text-yellow-800 hover:text-yellow-900 underline disabled:opacity-50"
+                  >
+                    {resendLoading ? 'Sending...' : 'Resend verification email'}
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
 
           {/* Form */}
