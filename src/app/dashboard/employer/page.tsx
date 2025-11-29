@@ -40,11 +40,17 @@ interface Application {
   _id: string;
   status: string;
   createdAt: string;
-  jobseeker: {
+  jobSeeker: {
     _id: string;
+    email: string;
+    jobSeekerProfile?: {
+      firstName: string;
+      lastName: string;
+    };
+  };
+  profileSnapshot?: {
     firstName: string;
     lastName: string;
-    email: string;
   };
   job: {
     _id: string;
@@ -389,8 +395,13 @@ export default function EmployerDashboard() {
             ) : (
               <div className="space-y-3">
                 {recentApplications.map((application) => {
-                  const firstName = application.jobseeker?.firstName || 'Unknown';
-                  const lastName = application.jobseeker?.lastName || '';
+                  // Use profileSnapshot first, then fall back to jobSeekerProfile
+                  const firstName = application.profileSnapshot?.firstName
+                    || application.jobSeeker?.jobSeekerProfile?.firstName
+                    || 'Unknown';
+                  const lastName = application.profileSnapshot?.lastName
+                    || application.jobSeeker?.jobSeekerProfile?.lastName
+                    || '';
                   const jobTitle = application.job?.title || 'Unknown Position';
 
                   return (

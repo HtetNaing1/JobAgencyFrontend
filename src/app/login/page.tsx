@@ -8,7 +8,7 @@ import { Button, Input, PasswordInput, Alert, Spinner } from '@/components/ui';
 import api from '@/lib/api';
 
 function LoginContent() {
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, user } = useAuth();
   const searchParams = useSearchParams();
   const [formData, setFormData] = useState({
     email: '',
@@ -21,6 +21,19 @@ function LoginContent() {
   const [needsVerification, setNeedsVerification] = useState(false);
   const [unverifiedEmail, setUnverifiedEmail] = useState('');
   const [resendLoading, setResendLoading] = useState(false);
+
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const dashboardRoutes: Record<string, string> = {
+        jobseeker: '/dashboard/jobseeker',
+        employer: '/dashboard/employer',
+        training_center: '/dashboard/training-center',
+        admin: '/dashboard/admin',
+      };
+      window.location.href = dashboardRoutes[user.role] || '/';
+    }
+  }, [isAuthenticated, user]);
 
   useEffect(() => {
     if (searchParams.get('registered') === 'true') {

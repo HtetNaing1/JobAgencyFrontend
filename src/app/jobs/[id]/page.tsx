@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Card, Button, Badge } from '@/components/ui';
@@ -84,6 +84,9 @@ export default function JobDetailPage() {
   const [coverLetterOption, setCoverLetterOption] = useState<'text' | 'file'>('text');
   const [coverLetterFile, setCoverLetterFile] = useState<File | null>(null);
 
+  // Track if view has been recorded to prevent double counting in React Strict Mode
+  const viewRecorded = useRef(false);
+
   useEffect(() => {
     fetchJob();
     if (isAuthenticated && user?.role === 'jobseeker') {
@@ -91,6 +94,14 @@ export default function JobDetailPage() {
       checkBookmarkStatus();
     }
   }, [jobId, isAuthenticated, user]);
+
+  // Separate effect for recording view - only runs once
+  useEffect(() => {
+    if (!viewRecorded.current && jobId) {
+      viewRecorded.current = true;
+      api.post(`/jobs/${jobId}/view`).catch(() => {});
+    }
+  }, [jobId]);
 
   const checkBookmarkStatus = async () => {
     try {

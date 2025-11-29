@@ -52,7 +52,7 @@ export default api;
 
 // Auth API functions
 export const authApi = {
-  register: (data: { email: string; password: string; role?: string }) =>
+  register: (data: { email: string; password: string; role?: string; agreeToTerms?: boolean }) =>
     api.post('/auth/register', data),
 
   login: (data: { email: string; password: string }) =>

@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 import { Button, Input, PasswordInput, Alert } from '@/components/ui';
+import Modal from '@/components/ui/Modal';
 
 type Role = 'jobseeker' | 'employer' | 'training_center';
 
@@ -44,17 +45,33 @@ const roleOptions = [
 ];
 
 export default function RegisterPage() {
-  const { register } = useAuth();
+  const { register, isAuthenticated, user } = useAuth();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     confirmPassword: '',
     role: 'jobseeker' as Role,
+    agreeToTerms: false,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState('');
+  const [showTermsModal, setShowTermsModal] = useState(false);
+
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const dashboardRoutes: Record<string, string> = {
+        jobseeker: '/dashboard/jobseeker',
+        employer: '/dashboard/employer',
+        training_center: '/dashboard/training-center',
+        admin: '/dashboard/admin',
+      };
+      window.location.href = dashboardRoutes[user.role] || '/';
+    }
+  }, [isAuthenticated, user]);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
 
   const validateStep1 = () => {
     const newErrors: Record<string, string> = {};
@@ -102,17 +119,29 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validate terms agreement
+    if (!formData.agreeToTerms) {
+      setErrors({ agreeToTerms: 'You must agree to the Terms of Service and Privacy Policy' });
+      return;
+    }
+
     setIsLoading(true);
     setApiError('');
 
     try {
-      await register(formData.email, formData.password, formData.role);
+      await register(formData.email, formData.password, formData.role, formData.agreeToTerms);
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } } };
       setApiError(err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, checked } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: checked }));
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
   };
 
   const getColorClasses = (color: string, isSelected: boolean) => {
@@ -273,7 +302,41 @@ export default function RegisterPage() {
                 })}
               </div>
 
-              <div className="flex gap-3 pt-2">
+              {/* Terms and Privacy Checkbox */}
+              <div className="mt-4">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="agreeToTerms"
+                    checked={formData.agreeToTerms}
+                    onChange={handleCheckboxChange}
+                    className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-600">
+                    I agree to the{' '}
+                    <button
+                      type="button"
+                      onClick={() => setShowTermsModal(true)}
+                      className="text-blue-600 hover:underline"
+                    >
+                      Terms of Service
+                    </button>
+                    {' '}and{' '}
+                    <button
+                      type="button"
+                      onClick={() => setShowPrivacyModal(true)}
+                      className="text-blue-600 hover:underline"
+                    >
+                      Privacy Policy
+                    </button>
+                  </span>
+                </label>
+                {errors.agreeToTerms && (
+                  <p className="mt-1 text-sm text-red-600">{errors.agreeToTerms}</p>
+                )}
+              </div>
+
+              <div className="flex gap-3 pt-4">
                 <Button type="button" variant="outline" onClick={() => setStep(1)} className="flex-1">
                   <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16l-4-4m0 0l4-4m-4 4h18" />
@@ -284,48 +347,9 @@ export default function RegisterPage() {
                   Create Account
                 </Button>
               </div>
-
-              <p className="text-xs text-gray-500 text-center mt-4">
-                By creating an account, you agree to our{' '}
-                <Link href="/terms" className="text-blue-600 hover:underline">Terms of Service</Link>
-                {' '}and{' '}
-                <Link href="/privacy" className="text-blue-600 hover:underline">Privacy Policy</Link>
-              </p>
             </form>
           )}
 
-          {/* Divider (Step 1 only) */}
-          {step === 1 && (
-            <>
-              <div className="relative my-8">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-200"></div>
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-4 bg-white text-gray-500">Or sign up with</span>
-                </div>
-              </div>
-
-              {/* Social Login */}
-              <div className="grid grid-cols-2 gap-4">
-                <Button variant="outline" className="w-full">
-                  <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
-                    <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                    <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                  </svg>
-                  Google
-                </Button>
-                <Button variant="outline" className="w-full">
-                  <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                  </svg>
-                  GitHub
-                </Button>
-              </div>
-            </>
-          )}
         </div>
       </div>
 
@@ -350,7 +374,7 @@ export default function RegisterPage() {
             {/* Features List */}
             <div className="space-y-6">
               {[
-                { title: 'Smart Job Matching', desc: 'AI-powered recommendations based on your skills' },
+                { title: 'Smart Job Matching', desc: 'Recommendations based on your skills' },
                 { title: 'One-Click Apply', desc: 'Apply to multiple jobs with a single click' },
                 { title: 'Real-Time Updates', desc: 'Get instant notifications on your applications' },
               ].map((feature, index) => (
@@ -370,6 +394,104 @@ export default function RegisterPage() {
           </div>
         </div>
       </div>
+
+      {/* Terms of Service Modal */}
+      <Modal
+        isOpen={showTermsModal}
+        onClose={() => setShowTermsModal(false)}
+        title="Terms of Service"
+        size="lg"
+      >
+        <div className="max-h-96 overflow-y-auto prose prose-sm">
+          <p className="text-gray-600 mb-4"><strong>Effective Date:</strong> July 1, 2024</p>
+
+          <h3 className="text-lg font-semibold text-gray-900 mt-4">1. Acceptance of Terms</h3>
+          <p className="text-gray-600">By accessing and using JobAgency, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our platform.</p>
+
+          <h3 className="text-lg font-semibold text-gray-900 mt-4">2. User Accounts</h3>
+          <p className="text-gray-600">You are responsible for maintaining the confidentiality of your account credentials. You agree to provide accurate and complete information during registration and to update your information as needed.</p>
+
+          <h3 className="text-lg font-semibold text-gray-900 mt-4">3. User Conduct</h3>
+          <p className="text-gray-600">Users agree not to:</p>
+          <ul className="list-disc list-inside text-gray-600 ml-4">
+            <li>Post false or misleading information</li>
+            <li>Harass or discriminate against other users</li>
+            <li>Upload malicious content or spam</li>
+            <li>Violate any applicable laws or regulations</li>
+          </ul>
+
+          <h3 className="text-lg font-semibold text-gray-900 mt-4">4. Job Listings</h3>
+          <p className="text-gray-600">Employers are responsible for ensuring job listings are accurate and comply with employment laws. JobAgency reserves the right to remove any listing that violates our policies.</p>
+
+          <h3 className="text-lg font-semibold text-gray-900 mt-4">5. Intellectual Property</h3>
+          <p className="text-gray-600">All content on JobAgency, including logos, text, and graphics, is owned by JobAgency or its licensors and is protected by intellectual property laws.</p>
+
+          <h3 className="text-lg font-semibold text-gray-900 mt-4">6. Limitation of Liability</h3>
+          <p className="text-gray-600">JobAgency is not responsible for the actions of employers or job seekers. We do not guarantee employment outcomes or the accuracy of user-provided information.</p>
+
+          <h3 className="text-lg font-semibold text-gray-900 mt-4">7. Termination</h3>
+          <p className="text-gray-600">We reserve the right to suspend or terminate accounts that violate these terms without prior notice.</p>
+
+          <h3 className="text-lg font-semibold text-gray-900 mt-4">8. Changes to Terms</h3>
+          <p className="text-gray-600">We may update these terms at any time. Continued use of the platform constitutes acceptance of the updated terms.</p>
+        </div>
+      </Modal>
+
+      {/* Privacy Policy Modal */}
+      <Modal
+        isOpen={showPrivacyModal}
+        onClose={() => setShowPrivacyModal(false)}
+        title="Privacy Policy"
+        size="lg"
+      >
+        <div className="max-h-96 overflow-y-auto prose prose-sm">
+          <p className="text-gray-600 mb-4"><strong>Effective Date:</strong> July 1, 2024</p>
+
+          <h3 className="text-lg font-semibold text-gray-900 mt-4">1. Information We Collect</h3>
+          <p className="text-gray-600">We collect information you provide directly, including:</p>
+          <ul className="list-disc list-inside text-gray-600 ml-4">
+            <li>Account information (email, password)</li>
+            <li>Profile information (name, contact details, resume)</li>
+            <li>Job applications and course inquiries</li>
+          </ul>
+
+          <h3 className="text-lg font-semibold text-gray-900 mt-4">2. How We Use Your Information</h3>
+          <p className="text-gray-600">We use your information to:</p>
+          <ul className="list-disc list-inside text-gray-600 ml-4">
+            <li>Provide and improve our services</li>
+            <li>Match job seekers with employers</li>
+            <li>Send notifications about applications and jobs</li>
+            <li>Communicate important updates</li>
+          </ul>
+
+          <h3 className="text-lg font-semibold text-gray-900 mt-4">3. Information Sharing</h3>
+          <p className="text-gray-600">We share your information with:</p>
+          <ul className="list-disc list-inside text-gray-600 ml-4">
+            <li>Employers when you apply to jobs</li>
+            <li>Training providers when you submit inquiries</li>
+            <li>Service providers who assist our operations</li>
+          </ul>
+          <p className="text-gray-600 mt-2">We do not sell your personal information to third parties.</p>
+
+          <h3 className="text-lg font-semibold text-gray-900 mt-4">4. Data Security</h3>
+          <p className="text-gray-600">We implement appropriate security measures including encryption, secure servers, and access controls to protect your data.</p>
+
+          <h3 className="text-lg font-semibold text-gray-900 mt-4">5. Your Rights</h3>
+          <p className="text-gray-600">You have the right to:</p>
+          <ul className="list-disc list-inside text-gray-600 ml-4">
+            <li>Access your personal data</li>
+            <li>Update or correct your information</li>
+            <li>Delete your account and data</li>
+            <li>Opt-out of marketing communications</li>
+          </ul>
+
+          <h3 className="text-lg font-semibold text-gray-900 mt-4">6. Cookies</h3>
+          <p className="text-gray-600">We use cookies to improve user experience and analyze platform usage. You can manage cookie preferences in your browser settings.</p>
+
+          <h3 className="text-lg font-semibold text-gray-900 mt-4">7. Contact Us</h3>
+          <p className="text-gray-600">For privacy-related questions, contact us at privacy@jobagency.com</p>
+        </div>
+      </Modal>
     </div>
   );
 }

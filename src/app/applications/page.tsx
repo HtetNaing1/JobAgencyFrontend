@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Card, Button, Badge } from '@/components/ui';
+import { ConfirmModal } from '@/components/ui/Modal';
 import { useAuth } from '@/contexts/AuthContext';
 import api from '@/lib/api';
 
@@ -80,6 +81,7 @@ export default function ApplicationsPage() {
   const [statusCounts, setStatusCounts] = useState<StatusCounts>({});
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
   const [withdrawing, setWithdrawing] = useState<string | null>(null);
+  const [withdrawConfirmId, setWithdrawConfirmId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchApplications();
@@ -103,16 +105,27 @@ export default function ApplicationsPage() {
   };
 
   const handleWithdraw = async (applicationId: string) => {
-    if (!confirm('Are you sure you want to withdraw this application?')) return;
-
     setWithdrawing(applicationId);
     try {
       await api.put(`/applications/${applicationId}/withdraw`);
-      fetchApplications();
+      setApplications(prev =>
+        prev.map(app =>
+          app._id === applicationId
+            ? { ...app, status: 'withdrawn' }
+            : app
+        )
+      );
+      setStatusCounts(prev => ({
+        ...prev,
+        withdrawn: (prev.withdrawn || 0) + 1,
+        [applications.find(a => a._id === applicationId)?.status as keyof StatusCounts]:
+          Math.max(0, (prev[applications.find(a => a._id === applicationId)?.status as keyof StatusCounts] || 0) - 1)
+      }));
     } catch (error) {
       console.error('Error withdrawing application:', error);
     } finally {
       setWithdrawing(null);
+      setWithdrawConfirmId(null);
     }
   };
 
@@ -373,7 +386,7 @@ export default function ApplicationsPage() {
                       </button>
                       {application.job && !['rejected', 'hired', 'withdrawn'].includes(application.status) && (
                         <button
-                          onClick={() => handleWithdraw(application._id)}
+                          onClick={() => setWithdrawConfirmId(application._id)}
                           disabled={withdrawing === application._id}
                           className="text-sm text-red-600 hover:underline disabled:opacity-50"
                         >
@@ -557,6 +570,19 @@ export default function ApplicationsPage() {
           </Card>
         </div>
       )}
+
+      {/* Withdraw Confirmation Modal */}
+      <ConfirmModal
+        isOpen={withdrawConfirmId !== null}
+        onClose={() => setWithdrawConfirmId(null)}
+        onConfirm={() => withdrawConfirmId && handleWithdraw(withdrawConfirmId)}
+        title="Withdraw Application"
+        message="Are you sure you want to withdraw this application? This action cannot be undone and you may not be able to apply for this position again."
+        confirmLabel="Withdraw"
+        cancelLabel="Cancel"
+        variant="danger"
+        isLoading={withdrawing !== null}
+      />
     </div>
   );
 }

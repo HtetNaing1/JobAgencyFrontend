@@ -49,6 +49,16 @@ interface Stats {
   interviews: number;
 }
 
+interface Profile {
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  skills?: string[];
+  experience?: Array<{ company: string; position: string }>;
+  education?: Array<{ institution: string; degree: string }>;
+  location?: { city?: string; country?: string };
+}
+
 // Icon components for stats
 const DocumentIcon = () => (
   <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -78,7 +88,20 @@ export default function JobSeekerDashboard() {
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [recentApplications, setRecentApplications] = useState<Application[]>([]);
   const [stats, setStats] = useState<Stats>({ total: 0, pending: 0, shortlisted: 0, interviews: 0 });
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Check if profile is complete (excluding photos and file uploads)
+  const isProfileComplete = (p: Profile | null): boolean => {
+    if (!p) return false;
+    return !!(
+      p.firstName &&
+      p.lastName &&
+      p.phone &&
+      p.skills && p.skills.length > 0 &&
+      p.location?.city
+    );
+  };
 
   useEffect(() => {
     fetchDashboardData();
@@ -88,12 +111,14 @@ export default function JobSeekerDashboard() {
     try {
       setLoading(true);
 
-      // Fetch recommendations, applications in parallel
-      const [recsResponse, appsResponse] = await Promise.all([
+      // Fetch profile, recommendations, applications in parallel
+      const [profileResponse, recsResponse, appsResponse] = await Promise.all([
+        api.get('/jobseekers/profile').catch(() => ({ data: { data: null } })),
         api.get('/recommendations?limit=5').catch(() => ({ data: { data: [] } })),
         api.get('/applications?limit=5').catch(() => ({ data: { data: [], stats: {} } }))
       ]);
 
+      setProfile(profileResponse.data.data || null);
       setRecommendations(recsResponse.data.data || []);
       setRecentApplications(appsResponse.data.data || []);
 
@@ -214,7 +239,7 @@ export default function JobSeekerDashboard() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Quick Actions */}
-            <Card className="lg:col-span-1 h-fit">
+            <Card className="lg:col-span-1">
               <h3 className="text-lg font-semibold text-gray-900 mb-3">Quick Actions</h3>
               <div className="space-y-2">
                 {[
@@ -242,7 +267,7 @@ export default function JobSeekerDashboard() {
             <Card className="lg:col-span-2 flex flex-col">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">Recommended for You</h3>
-                <Link href="/jobs" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                <Link href="/jobs?recommended=true" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
                   View all
                 </Link>
               </div>
@@ -251,6 +276,25 @@ export default function JobSeekerDashboard() {
                 <div className="flex justify-center py-12">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                 </div>
+              ) : !isProfileComplete(profile) ? (
+                <div className="text-center py-6 flex-1 flex flex-col items-center justify-center">
+                  <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-amber-100 flex items-center justify-center">
+                    <svg className="w-7 h-7 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                  <h4 className="text-base font-medium text-gray-900 mb-1">Complete Your Profile</h4>
+                  <p className="text-gray-500 text-sm mb-3">Add your name, phone, skills, and location to get personalized job recommendations</p>
+                  <Link
+                    href="/profile/setup"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-lg font-medium hover:bg-amber-600 transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    Complete Profile
+                  </Link>
+                </div>
               ) : recommendations.length === 0 ? (
                 <div className="text-center py-12">
                   <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gray-100 flex items-center justify-center">
@@ -258,13 +302,13 @@ export default function JobSeekerDashboard() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                   </div>
-                  <h4 className="text-lg font-medium text-gray-900 mb-2">No recommendations yet</h4>
-                  <p className="text-gray-500 mb-4">Complete your profile to get personalized job recommendations</p>
+                  <h4 className="text-lg font-medium text-gray-900 mb-2">No matching jobs found</h4>
+                  <p className="text-gray-500 mb-4">We couldn&apos;t find jobs matching your profile right now. Try browsing all jobs.</p>
                   <Link
-                    href="/profile"
+                    href="/jobs"
                     className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
                   >
-                    Complete Profile
+                    Browse Jobs
                   </Link>
                 </div>
               ) : (

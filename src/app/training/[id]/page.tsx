@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Card, Button, Input } from '@/components/ui';
@@ -82,9 +82,20 @@ export default function CourseDetailPage() {
   const [inquirySuccess, setInquirySuccess] = useState(false);
   const [inquiryError, setInquiryError] = useState('');
 
+  // Track if view has been recorded to prevent double counting in React Strict Mode
+  const viewRecorded = useRef(false);
+
   useEffect(() => {
     if (params.id) {
       fetchCourse();
+    }
+  }, [params.id]);
+
+  // Separate effect for recording view - only runs once
+  useEffect(() => {
+    if (!viewRecorded.current && params.id) {
+      viewRecorded.current = true;
+      api.post(`/courses/${params.id}/view`).catch(() => {});
     }
   }, [params.id]);
 

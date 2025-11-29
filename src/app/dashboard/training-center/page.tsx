@@ -266,7 +266,7 @@ export default function TrainingCenterDashboard() {
               ) : (
                 <div className="space-y-3">
                   {recentInquiries.map((inquiry) => (
-                    <div key={inquiry._id} className="p-4 rounded-xl border border-gray-100 hover:border-gray-200 transition-colors">
+                    <Link key={inquiry._id} href="/dashboard/training-center/inquiries" className="block p-4 rounded-xl border border-gray-100 hover:border-purple-200 hover:bg-purple-50/50 transition-colors cursor-pointer">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-gray-900 truncate">{inquiry.course?.title}</p>
@@ -280,7 +280,7 @@ export default function TrainingCenterDashboard() {
                           <p className="text-xs text-gray-400 mt-1">{formatDate(inquiry.createdAt)}</p>
                         </div>
                       </div>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               )}

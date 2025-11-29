@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { Card, Button, Badge, Spinner, NoResultsState, SkeletonList, Select } from '@/components/ui';
 import { useAuth } from '@/contexts/AuthContext';
 import BookmarkButton from '@/components/BookmarkButton';
@@ -37,6 +38,8 @@ interface Job {
   };
   postedDate: string;
   applicationDeadline: string;
+  matchScore?: number;
+  matchingSkills?: string[];
 }
 
 interface Pagination {
@@ -56,6 +59,7 @@ const jobTypes = [
 
 export default function JobsPage() {
   const { user } = useAuth();
+  const searchParams = useSearchParams();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState<Pagination>({ total: 0, page: 1, pages: 0, limit: 10 });
@@ -70,6 +74,8 @@ export default function JobsPage() {
   const [maxSalary, setMaxSalary] = useState('');
   const [sortBy, setSortBy] = useState('newest');
   const [showFilters, setShowFilters] = useState(false);
+  const [recommended, setRecommended] = useState(searchParams.get('recommended') === 'true');
+  const [recommendedMessage, setRecommendedMessage] = useState('');
 
   // Fetch bookmarked job IDs for job seekers
   useEffect(() => {
@@ -88,31 +94,43 @@ export default function JobsPage() {
 
   const fetchJobs = useCallback(async (page = 1) => {
     setLoading(true);
+    setRecommendedMessage('');
     try {
-      const params = new URLSearchParams();
-      params.append('page', page.toString());
-      params.append('limit', '10');
+      if (recommended && user?.role === 'jobseeker') {
+        // Fetch recommended jobs
+        const response = await api.get(`/jobs/recommended?page=${page}&limit=10`);
+        setJobs(response.data.data);
+        setPagination(response.data.pagination);
+        if (response.data.message) {
+          setRecommendedMessage(response.data.message);
+        }
+      } else {
+        // Fetch regular jobs
+        const params = new URLSearchParams();
+        params.append('page', page.toString());
+        params.append('limit', '10');
 
-      if (search) params.append('search', search);
-      if (location) params.append('location', location);
-      if (selectedJobTypes.length > 0) params.append('jobType', selectedJobTypes.join(','));
-      if (remote) params.append('remote', 'true');
-      if (minSalary) params.append('minSalary', minSalary);
-      if (maxSalary) params.append('maxSalary', maxSalary);
+        if (search) params.append('search', search);
+        if (location) params.append('location', location);
+        if (selectedJobTypes.length > 0) params.append('jobType', selectedJobTypes.join(','));
+        if (remote) params.append('remote', 'true');
+        if (minSalary) params.append('minSalary', minSalary);
+        if (maxSalary) params.append('maxSalary', maxSalary);
 
-      if (sortBy === 'salary_high') params.append('sort', 'salary_high');
-      else if (sortBy === 'salary_low') params.append('sort', 'salary_low');
-      else if (sortBy === 'oldest') params.append('sort', 'oldest');
+        if (sortBy === 'salary_high') params.append('sort', 'salary_high');
+        else if (sortBy === 'salary_low') params.append('sort', 'salary_low');
+        else if (sortBy === 'oldest') params.append('sort', 'oldest');
 
-      const response = await api.get(`/jobs?${params.toString()}`);
-      setJobs(response.data.data);
-      setPagination(response.data.pagination);
+        const response = await api.get(`/jobs?${params.toString()}`);
+        setJobs(response.data.data);
+        setPagination(response.data.pagination);
+      }
     } catch (error) {
       console.error('Error fetching jobs:', error);
     } finally {
       setLoading(false);
     }
-  }, [search, location, selectedJobTypes, remote, minSalary, maxSalary, sortBy]);
+  }, [search, location, selectedJobTypes, remote, minSalary, maxSalary, sortBy, recommended, user?.role]);
 
   useEffect(() => {
     const debounce = setTimeout(() => {
@@ -136,6 +154,7 @@ export default function JobsPage() {
     setMinSalary('');
     setMaxSalary('');
     setSortBy('newest');
+    setRecommended(false);
   };
 
   const formatSalary = (salary: Job['salary']) => {
@@ -161,7 +180,7 @@ export default function JobsPage() {
     return new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
-  const hasActiveFilters = search || location || selectedJobTypes.length > 0 || remote || minSalary || maxSalary;
+  const hasActiveFilters = search || location || selectedJobTypes.length > 0 || remote || minSalary || maxSalary || recommended;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -207,6 +226,25 @@ export default function JobsPage() {
               Filters
             </button>
           </div>
+
+          {/* Recommended Jobs Button - Only for Job Seekers */}
+          {user?.role === 'jobseeker' && (
+            <div className="mt-6">
+              <button
+                onClick={() => setRecommended(!recommended)}
+                className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all ${
+                  recommended
+                    ? 'bg-white text-blue-600 shadow-lg'
+                    : 'bg-white/20 text-white hover:bg-white/30'
+                }`}
+              >
+                <svg className="w-5 h-5" fill={recommended ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                </svg>
+                {recommended ? 'Showing Recommended Jobs' : 'Recommended for You'}
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -301,9 +339,24 @@ export default function JobsPage() {
             {/* Results Header */}
             <div className="flex items-center justify-between mb-6">
               <p className="text-gray-600">
-                {loading ? 'Loading...' : `${pagination.total} jobs found`}
+                {loading ? 'Loading...' : recommended ? `${pagination.total} recommended jobs` : `${pagination.total} jobs found`}
               </p>
             </div>
+
+            {/* Recommended Message */}
+            {recommendedMessage && (
+              <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <svg className="w-5 h-5 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p className="text-blue-700">{recommendedMessage}</p>
+                  <Link href="/profile" className="ml-auto text-blue-600 hover:text-blue-700 font-medium text-sm whitespace-nowrap">
+                    Update Profile
+                  </Link>
+                </div>
+              </div>
+            )}
 
             {/* Active Filters */}
             {hasActiveFilters && (
@@ -348,6 +401,19 @@ export default function JobsPage() {
                     </button>
                   </span>
                 )}
+                {recommended && (
+                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-sm">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                    </svg>
+                    Recommended
+                    <button onClick={() => setRecommended(false)} className="hover:text-yellow-900">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </span>
+                )}
               </div>
             )}
 
@@ -382,9 +448,19 @@ export default function JobsPage() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-4">
                             <div>
-                              <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600">
-                                {job.title}
-                              </h3>
+                              <div className="flex items-center gap-2">
+                                <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600">
+                                  {job.title}
+                                </h3>
+                                {job.matchScore !== undefined && job.matchScore > 0 && (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                                      <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                                    </svg>
+                                    {job.matchScore}% match
+                                  </span>
+                                )}
+                              </div>
                               <p className="text-gray-600">
                                 {job.employerProfile?.companyName || 'Company'}
                               </p>
