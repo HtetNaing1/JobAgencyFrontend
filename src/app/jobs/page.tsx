@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Card, Button, Badge, Spinner, NoResultsState, SkeletonList, Select } from '@/components/ui';
@@ -57,7 +57,7 @@ const jobTypes = [
   { value: 'temporary', label: 'Temporary' },
 ];
 
-export default function JobsPage() {
+function JobsContent() {
   const { user } = useAuth();
   const searchParams = useSearchParams();
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -550,5 +550,25 @@ export default function JobsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function JobsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50">
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 py-12">
+          <div className="max-w-6xl mx-auto px-4">
+            <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">Find Your Dream Job</h1>
+            <p className="text-blue-100 text-lg">Discover opportunities from top employers</p>
+          </div>
+        </div>
+        <div className="max-w-6xl mx-auto px-4 py-8 flex justify-center">
+          <Spinner size="lg" label="Loading jobs..." />
+        </div>
+      </div>
+    }>
+      <JobsContent />
+    </Suspense>
   );
 }
