@@ -108,7 +108,7 @@ export default function TrainingCenterProfilePage() {
             </svg>
           </div>
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Training Center Not Found</h2>
-          <p className="text-gray-600 mb-6">The training center you're looking for doesn't exist or has been removed.</p>
+          <p className="text-gray-600 mb-6">The training center you&apos;re looking for doesn&apos;t exist or has been removed.</p>
           <Link href="/">
             <Button>Go Home</Button>
           </Link>
