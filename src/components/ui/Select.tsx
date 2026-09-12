@@ -1,6 +1,6 @@
 'use client';
 
-import { SelectHTMLAttributes, forwardRef, ReactNode } from 'react';
+import { SelectHTMLAttributes, forwardRef, ReactNode, useId } from 'react';
 
 interface SelectOption {
   value: string;
@@ -34,7 +34,8 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
     },
     ref
   ) => {
-    const inputId = id || `select-${Math.random().toString(36).substr(2, 9)}`;
+    const generatedId = useId();
+    const inputId = id || generatedId;
 
     const sizes = {
       sm: 'py-2 text-sm',
