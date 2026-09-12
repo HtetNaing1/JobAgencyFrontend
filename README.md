@@ -6,8 +6,30 @@ Backend repository: https://github.com/HtetNaing1/JobAgencyBackend
 
 ---
 
+## Live Demo
+
+**https://job-agency-frontend.vercel.app**
+
+Hosted on Vercel, backed by the API at https://jobagencybackend.onrender.com/api. If the API has been idle for a while the first page load may take up to a minute while the instance wakes; after that it is fast.
+
+### Demo accounts
+
+Every demo account uses the password `Test1234!`.
+
+| Role | Email | Lands on |
+| --- | --- | --- |
+| Job seeker | `john.doe@email.com` | `/dashboard/jobseeker` |
+| Employer | `hr@techcorp.com` | `/dashboard/employer` |
+| Training center | `info@techacademy.com` | `/dashboard/training-center` |
+| Admin | `admin@jobagency.com` | `/dashboard/admin` |
+
+Signing in as each role reveals a different dashboard and navigation. This is a demo environment populated with seeded sample data and may be reset at any time, so treat anything created there as temporary.
+
+---
+
 ## Table of Contents
 
+- [Live Demo](#live-demo)
 - [Overview](#overview)
 - [Tech Stack](#tech-stack)
 - [Features by Role](#features-by-role)
